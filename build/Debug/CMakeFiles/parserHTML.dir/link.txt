@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/parserHTML.dir/main.cpp.o CMakeFiles/parserHTML.dir/parser.cpp.o  -o parserHTML 

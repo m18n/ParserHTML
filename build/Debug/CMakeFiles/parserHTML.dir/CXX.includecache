@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/misha/project/CPP/ParserHTML/include/parser.h
+iostream
+-
+cstring
+-
+vector
+-
+
+/home/misha/project/CPP/ParserHTML/main.cpp
+iostream
+-
+unistd.h
+-
+ctime
+-
+include/parser.h
+/home/misha/project/CPP/ParserHTML/include/parser.h
+

@@ -1,0 +1,3 @@
+/home/misha/project/CPP/ParserHTML/build/Debug/CMakeFiles/rebuild_cache.dir
+/home/misha/project/CPP/ParserHTML/build/Debug/CMakeFiles/edit_cache.dir
+/home/misha/project/CPP/ParserHTML/build/Debug/CMakeFiles/parserHTML.dir
