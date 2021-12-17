@@ -97,7 +97,7 @@ std::vector<parse::argument> parse::GetArgumnets(const char *text, int start, in
         std::cout << "ERROR PARSE ARGUMENT: " << a << "\n";
     }
 }
-parse::tag* parse::ParseTag(const char *text, int start, int size)
+parse::tag parse::ParseTag(const char *text, int start, int size)
 {
 
     int indexend = 0;
@@ -113,7 +113,7 @@ parse::tag* parse::ParseTag(const char *text, int start, int size)
             break;
         }
     }
-    for (int i = start; i < size; i++)
+    for (int i = start; i < indexend; i++)
     {
         if (text[i] == ' ')
         {
@@ -128,11 +128,11 @@ parse::tag* parse::ParseTag(const char *text, int start, int size)
     std::vector<argument> arr;
     if(indexend!=indexstartat)
          arr= GetArgumnets(text, indexstartat, indexend);
-    tag* tg=new tag;
-    tg->start=indexend+1;
-    tg->nametag = nametag;
-    tg->arguments=std::move(arr);
-    tg->childs.push_back(tg);
+    tag tg;
+    tg.start=indexend+1;
+    tg.nametag = nametag;
+    tg.arguments=std::move(arr);
+    tg.childs.push_back(tg);
     return tg;
 }
 std::string parse::str::GetWord(const char *text, int size, char stop)
@@ -153,93 +153,85 @@ std::string parse::str::GetWord(const char *text, int size, char stop)
     }
     return std::move(str);
 }
-void parse::ParseContentTag(const char *text, tag *tg, int start, int size)
+parse::tag parse::ParseContentTag(const char *text, int start, int size)
 {
-   int sizetag=0;
+    tag tg;
+    int sizetag=0;
     for (int i = start; i < size; i++)
     {
         if (text[i] == '<' && text[i + 1] == '/'){
+          
             std::string end = str::GetWord(&text[i+2], size - i, '>');
-            int sizej=tg->childs.size();
+            int sizej=tg.childs.size();
             int index = -1;
             
             
             for (int j = sizej - 1; j >= 0; j--)
             {
-                if (tg->childs[j]->typetag == false)
+                if (tg.childs[j].typetag == false)
                 {
-                    if(tg->childs[j]->nametag!=end){
-                        for(int g=0;g<sizej;g++){
-                            delete tg->childs[g];
-                        }
-                     
+                    if(tg.childs[j].nametag!=end){
                         throw 5;
                     }
                     index = j;
-                    tg->childs[index]->typetag = true;
+                    tg.childs[index].typetag = true;
                     break;
                 }
             }
             if (index == -1)
                 throw 5;
             std::string content="";
-            int sizecontent=(i-1)-tg->childs[index]->start+1;
+            int sizecontent=(i-1)-tg.childs[index].start+1;
             content.resize(sizecontent);
-            int start=tg->childs[index]->start;
+            int start=tg.childs[index].start;
             for(int j=start;j<i;j++){
                 content[j-start]=text[j];
             }
             std::cout<<"CONTENT: "<<content<<"\n";
-            tg->childs[index]->content=std::move(content);
-            bool endb=true;
-            for (int j = sizej - 1; j >= 0; j--)
-            {
-                if (tg->childs[j]->typetag == false)
-                {
-                    endb=false;
-                   
-                    break;
-                }
-            }
-            if(endb==true)
-                return;
+            tg.childs[index].content=std::move(content);
+            
         }
         else if (text[i] == '<')
         {
-            tag* te=new tag;
-            sizetag++;
-            if(sizetag==1)
-                tg=te;
+            tag te;
+            
             
             te = ParseTag(text, i, size);
-            te->arguments.Show();
-            for(int j=i;j<size;j++){
+            te.arguments.Show();
+           for(int j=i;j<size;j++){
                 if(text[j]=='>'){
-                    te->start=j+1;
+                    te.start=j+1;
                     break;
                 }
             }
-            
-            
-            tg->childs.push_back(te);
+            sizetag++;
+            if(sizetag==1){
+                tg.nametag=te.nametag;
+                tg.arguments=te.arguments;
+                tg.start=te.start;
+                tg.typetag=te.typetag;
+                
+            }
+            tg.childs.push_back(tag(te));
             
         }
         
     }
-    for(int i=0;i<tg->childs.size();i++){
-        if(tg->childs[i]->typetag==false)
+    for(int i=0;i<tg.childs.size();i++){
+        if(tg.childs[i].typetag==false)
             throw 6;
     }
+    return tg;
 }
-parse::tag* parse::SearchTag(const char *text, int size, std::string nametag, argument filter)
+parse::tag parse::SearchTag(const char *text, int size, std::string nametag, argument filter)
 {
   
 
         int index = str::SearchWord(text, size, (filter.name + "=\"" + filter.data + "\"").c_str());
         int indextag = str::SearchWordRevers(text, index, "<" + nametag);
         std::cout << &text[indextag] << "\n";
-        tag* tg=NULL;
-        ParseContentTag(text,tg,indextag,size);
+        
+        tag tg=ParseContentTag(text,indextag,size);
 
         return tg;
    

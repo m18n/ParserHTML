@@ -81,7 +81,7 @@ namespace parse
     struct tag
     {
         std::string nametag;
-        std::vector<tag*> childs;
+        std::vector<tag> childs;
         Arguments arguments;
         std::string content;
         bool3 typetag=false;
@@ -95,8 +95,8 @@ namespace parse
         void ReversStr(std::string &str);
        std::string GetWord(const char *text, int size, char stop);
     }
-    tag* ParseTag(const char* text,int start,int size);
-    void ParseContentTag(const char* text,tag* tg,int start,int size);
+    tag ParseTag(const char* text,int start,int size);
+    tag ParseContentTag(const char *text, int start, int size);
     std::vector<parse::argument> GetArgumnets(const char *text, int start, int end);
-    tag* SearchTag(const char *text, int size, std::string nametag, argument filter);
+    tag SearchTag(const char *text, int size, std::string nametag, argument filter);
 }
