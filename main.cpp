@@ -7,15 +7,17 @@ int main()
 {
     std::cout << "START\n";
 
-    const char hay[1000] = "<title id=\"23\" vent=\"df\">Document<p vsd=\"sdsf\">NIGAR</p></title>";
+    const char hay[1000] = "<title>TEST<p>VD<p>vd</p></p></title>";
     parse::argument ar;
-    ar.data = "23";
-    ar.name = "id";
+    ar.data = "main";
+    ar.name = "class";
     
     try
     {
-        parse::tag tg=parse::SearchTag(hay,strlen(hay),"title",ar);
+        parse::tag tg=parse::ParseContentTag(hay,0,strlen(hay));
+        
         std::cout<<"\n\n";
+        std::cout<<tg.childs[1].content<<"\n";
         
     }
     catch (int e)

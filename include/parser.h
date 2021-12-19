@@ -80,6 +80,7 @@ namespace parse
     };
     struct tag
     {
+        tag* father=NULL;
         std::string nametag;
         std::vector<tag> childs;
         Arguments arguments;

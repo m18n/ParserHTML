@@ -102,14 +102,14 @@ parse::tag parse::ParseTag(const char *text, int start, int size)
 
     int indexend = 0;
     int indexstartat = 0;
-    
+
     for (int i = start; i < size; i++)
     {
-        
+
         if (text[i] == '>')
         {
             indexend = i;
-            indexstartat=i;
+            indexstartat = i;
             break;
         }
     }
@@ -126,12 +126,12 @@ parse::tag parse::ParseTag(const char *text, int start, int size)
     nametag.resize(sizenametag);
     memcpy(&nametag[0], &text[start + 1], sizenametag);
     std::vector<argument> arr;
-    if(indexend!=indexstartat)
-         arr= GetArgumnets(text, indexstartat, indexend);
+    if (indexend != indexstartat)
+        arr = GetArgumnets(text, indexstartat, indexend);
     tag tg;
-    tg.start=indexend+1;
+    tg.start = indexend + 1;
     tg.nametag = nametag;
-    tg.arguments=std::move(arr);
+    tg.arguments = std::move(arr);
     tg.childs.push_back(tg);
     return tg;
 }
@@ -140,7 +140,8 @@ std::string parse::str::GetWord(const char *text, int size, char stop)
     int indexend = 0;
     for (int i = 0; i < size; i++)
     {
-        if (text[i] == stop){
+        if (text[i] == stop)
+        {
             indexend = i;
             break;
         }
@@ -156,85 +157,110 @@ std::string parse::str::GetWord(const char *text, int size, char stop)
 parse::tag parse::ParseContentTag(const char *text, int start, int size)
 {
     tag tg;
-    int sizetag=0;
+    int sizetag = 0;
+    tag *tt = &tg;
     for (int i = start; i < size; i++)
     {
-        if (text[i] == '<' && text[i + 1] == '/'){
-          
-            std::string end = str::GetWord(&text[i+2], size - i, '>');
-            int sizej=tg.childs.size();
+        if (text[i] == '<' && text[i + 1] == '/')
+        {
+
+            std::string end = str::GetWord(&text[i + 2], size - i, '>');
+            int sizej = tt->childs.size();
             int index = -1;
-            
-            
+
             for (int j = sizej - 1; j >= 0; j--)
             {
-                if (tg.childs[j].typetag == false)
+                if (tt->childs[j].typetag == false)
                 {
-                    if(tg.childs[j].nametag!=end){
+                    if (tt->childs[j].nametag != end)
+                    {
                         throw 5;
                     }
                     index = j;
-                    tg.childs[index].typetag = true;
+                    if(index==0)
+                        tt->typetag=true;
+                    tt->childs[index].typetag = true;
                     break;
                 }
             }
             if (index == -1)
-                throw 5;
-            std::string content="";
-            int sizecontent=(i-1)-tg.childs[index].start+1;
+                return tg;
+            std::string content = "";
+            int sizecontent = (i - 1) - tt->childs[index].start + 1;
             content.resize(sizecontent);
-            int start=tg.childs[index].start;
-            for(int j=start;j<i;j++){
-                content[j-start]=text[j];
+            int start = tt->childs[index].start;
+            for (int j = start; j < i; j++)
+            {
+                content[j - start] = text[j];
             }
-            std::cout<<"CONTENT: "<<content<<"\n";
-            tg.childs[index].content=std::move(content);
-            
+            std::cout << "CONTENT: " << content << "\n";
+            if(index==0)
+                tt->content=content;
+            tt->childs[index].content = std::move(content);
+            bool endf = true;
+            for (int j = sizej - 1; j >= 0; j--)
+            {
+                if (tt->childs[j].typetag == false)
+                {
+                    endf = false;
+                }
+            }
+            if (endf == true)
+            {
+                // tag* temp;
+                tt = tt->father;
+            }
         }
         else if (text[i] == '<')
         {
             tag te;
-            
-            
+
             te = ParseTag(text, i, size);
             te.arguments.Show();
-           for(int j=i;j<size;j++){
-                if(text[j]=='>'){
-                    te.start=j+1;
+            for (int j = i; j < size; j++)
+            {
+                if (text[j] == '>')
+                {
+                    te.start = j + 1;
                     break;
                 }
             }
-            sizetag++;
-            if(sizetag==1){
-                tg.nametag=te.nametag;
-                tg.arguments=te.arguments;
-                tg.start=te.start;
-                tg.typetag=te.typetag;
-                
-            }
+
             tg.childs.push_back(tag(te));
-            
+
+            sizetag++;
+            if (sizetag == 1)
+            {
+                tg.nametag = te.nametag;
+                tg.arguments = te.arguments;
+                tg.start = te.start;
+                tg.typetag = te.typetag;
+            }
+            else
+            {
+                tag *ft = tt;
+                tt = &tg.childs[sizetag-1];
+                tt->father = ft;
+            }
         }
-        
     }
-    for(int i=0;i<tg.childs.size();i++){
-        if(tg.childs[i].typetag==false)
+    for (int i = 0; i < tg.childs.size(); i++)
+    {
+        if (tg.childs[i].typetag == false)
             throw 6;
     }
     return tg;
 }
 parse::tag parse::SearchTag(const char *text, int size, std::string nametag, argument filter)
 {
-  
 
-        int index = str::SearchWord(text, size, (filter.name + "=\"" + filter.data + "\"").c_str());
-        int indextag = str::SearchWordRevers(text, index, "<" + nametag);
-        std::cout << &text[indextag] << "\n";
-        
-        tag tg=ParseContentTag(text,indextag,size);
+    int index = str::SearchWord(text, size, (filter.name + "=\"" + filter.data + "\"").c_str());
+    int indextag = str::SearchWordRevers(text, index, "<" + nametag);
+    std::cout << &text[indextag] << "\n";
 
-        return tg;
-   
+    tag tg = ParseContentTag(text, indextag, size);
+
+    return tg;
 }
 int parse::str::SearchWord(const char *text, int size, const char *word)
 {
